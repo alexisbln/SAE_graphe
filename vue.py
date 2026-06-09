@@ -94,3 +94,32 @@ class VueNeonaure(tk.Frame):
             id_texte = self.identifiants_textes[(x, y)]
             texte_a_afficher = str(nouvelle_valeur) if nouvelle_valeur > 0 else ""
             self.canvas.itemconfig(id_texte, text=texte_a_afficher)
+            
+
+# BLOC DE TEST
+if __name__ == "__main__":
+    #On allume le moteur Tkinter
+    fenetre_test = tk.Tk()
+    fenetre_test.title("Test de ma Vue")
+    
+    #Une fausse fonction de clic pour remplacer le contrôleur
+    def clic_bidon(x, y):
+        print(f"Bip ! Clic sur la colonne {x}, ligne {y}")
+        
+    #On crée ton interface et on l'affiche
+    ma_vue = VueNeonaure(fenetre_test, clic_bidon)
+    ma_vue.pack(expand=True, fill="both")
+    
+    #On invente des fausses données (une mini grille 3x3) pour tester le dessin
+    fausses_valeurs = {(0, 0): 5, (2, 2): 1} # Le chiffre 5 en haut à gauche, le 1 en bas à droite
+    faux_motifs = {
+        (0, 0): 1, (1, 0): 1, (2, 0): 1,  # La première ligne est le motif 1
+        (0, 1): 2, (1, 1): 2, (2, 1): 2,  # Le reste est le motif 2
+        (0, 2): 2, (1, 2): 2, (2, 2): 2
+    }
+    
+    # On demande à la vue de se dessiner avec ces fausses données
+    ma_vue.dessiner_grille(3, 3, fausses_valeurs, faux_motifs)
+    
+    # On fait tourner la fenêtre en boucle pour qu'elle reste ouverte
+    fenetre_test.mainloop()
