@@ -54,7 +54,7 @@ class Grille:
 
 if __name__ == "__main__":
     ma_grille = Grille()
-    ma_grille.charger_json("grille1.json")
+    ma_grille.charger_json("grille/grille1.json")
     
     print("--- TEST DU GRAPHE ---")
     print("Voisins de la case (0, 0) :", ma_grille.graphe[(0, 0)])
