@@ -36,6 +36,19 @@ class Grille:
             
         self.generer_graphe()
 
+    # Sauvegarde la grille actuelle dans un fichier JSON
+    def sauvegarder_json(self, nom_fichier):
+        donnees_a_sauver = {}
+        for nom_motif, motif in self.motifs.items():
+            liste_cases = []
+            for x, y in motif.cases:
+                valeur = self.valeurs.get((x, y), 0)
+                liste_cases.append([x, y, valeur])
+            donnees_a_sauver[nom_motif] = liste_cases
+            
+        with open(nom_fichier, 'w') as f:
+            json.dump(donnees_a_sauver, f)
+
     # Crée le dictionnaire d'adjacence reliant chaque case à ses voisins
     def generer_graphe(self):
         for (x, y) in self.valeurs.keys():
@@ -51,11 +64,101 @@ class Grille:
                     
             self.graphe[(x, y)] = voisins
 
+    # Vérifie si une valeur peut être placée en (x, y) selon les règles du jeu
+    def est_coup_valide(self, x, y, test_valeur):
+        for voisin in self.graphe[(x, y)]:
+            if self.valeurs[voisin] == test_valeur:
+                return False
 
+        motif_actuel = None
+        for motif in self.motifs.values():
+            if (x, y) in motif.cases:
+                motif_actuel = motif
+                break
+
+        if test_valeur < 1 or test_valeur > motif_actuel.taille:
+            return False
+
+        for case in motif_actuel.cases:
+            if case != (x, y) and self.valeurs[case] == test_valeur:
+                return False
+
+        return True
+            
+    # Trouve et renvoie les coordonnées (x, y) de la première case vide (valeur 0)
+    def trouver_case_vide(self):
+        for case, valeur in self.valeurs.items():
+            if valeur == 0:
+                return case
+        return None
+
+    # Résout la grille par essai-erreur (backtracking) et renvoie True si résolue
+    def resoudre(self):
+        case_vide = self.trouver_case_vide()
+        if not case_vide:
+            return True
+
+        x, y = case_vide
+        
+        motif_actuel = None
+        for motif in self.motifs.values():
+            if (x, y) in motif.cases:
+                motif_actuel = motif
+                break
+
+        for test_valeur in range(1, motif_actuel.taille + 1):
+            if self.est_coup_valide(x, y, test_valeur):
+                self.valeurs[(x, y)] = test_valeur
+                
+                if self.resoudre():
+                    return True
+                    
+                self.valeurs[(x, y)] = 0
+                
+        return False
+
+    # Renvoie la valeur actuelle de la case aux coordonnées (x, y)
+    def get_valeur(self, x, y):
+        return self.valeurs.get((x, y), 0)
+
+    # Modifie la valeur de la case aux coordonnées (x, y)
+    def set_valeur(self, x, y, valeur):
+        self.valeurs[(x, y)] = valeur
+
+    # Remet toutes les cases de la grille à 0
+    def vider_grille(self):
+        for case in self.valeurs.keys():
+            self.valeurs[case] = 0
+
+
+# --- ZONE DE TESTS ---
 if __name__ == "__main__":
     ma_grille = Grille()
-    ma_grille.charger_json("grille/grille1.json")
     
-    print("--- TEST DU GRAPHE ---")
-    print("Voisins de la case (0, 0) :", ma_grille.graphe[(0, 0)])
-    print("Voisins de la case (1, 1) :", ma_grille.graphe[(1, 1)])
+    print("1. Test chargement et graphe...")
+    ma_grille.charger_json("grille/grille1.json")
+    print("   -> Voisins de (0,0) :", ma_grille.graphe[(0,0)])
+    
+    print("\n2. Test getters et setters (Méthodes Contrôleur)...")
+    print("   -> Valeur initiale en (0,0) :", ma_grille.get_valeur(0, 0))
+    ma_grille.set_valeur(0, 0, 9)
+    print("   -> Nouvelle valeur forcée en (0,0) :", ma_grille.get_valeur(0, 0))
+    ma_grille.set_valeur(0, 0, 0) # On nettoie notre modification
+    
+    print("\n3. Test des règles du jeu...")
+    print("   -> Coup '1' valide en (0,0) ?", ma_grille.est_coup_valide(0, 0, 1))
+    
+    print("\n4. Test résolution algorithmique...")
+    if ma_grille.resoudre():
+        print("   -> Succès ! La grille est résolue.")
+    else:
+        print("   -> Échec de la résolution.")
+        
+    print("\n5. Test de sauvegarde JSON...")
+    # Va créer un nouveau fichier dans ton dossier grille/
+    ma_grille.sauvegarder_json("grille/grille1_resolue.json")
+    print("   -> Fichier 'grille1_resolue.json' créé avec succès !")
+    
+    print("\n6. Test de vidage de la grille...")
+    ma_grille.vider_grille()
+    print("   -> Valeur en (0,0) après vidage :", ma_grille.get_valeur(0, 0))
