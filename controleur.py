@@ -1,7 +1,6 @@
-from PyQt6.QtWidgets import QMessageBox, QFileDialog
+from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog
 from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog
 
 class Controleur :
     def __init__(self, modele, vue):
@@ -64,18 +63,25 @@ class Controleur :
                 "Ce chiffre ne respecte pas les contraintes (voisinage ou motif).")
             
     def gerer_clic_case(self, x, y):
+        if (x, y) in self.modele.cases_initiales:
+            self.afficher_avertissement(
+                "Case verrouillée", 
+                "Vous ne pouvez pas modifier une case de départ !"
+            )
+            return
         
         valeur, ok = QInputDialog.getInt(
             self.vue, 
             "Saisie", 
             f"Entrez un chiffre pour la case ({x}, {y}) :", 
             min=0, 
-            max=9
+            max=5
         )
         
         # Si l'utilisateur a cliqué sur "OK"
         if ok:
             self.gerer_modification_case(x, y, valeur)
+
     def resoudre_grille(self):
         
         self.arreter_chrono()
@@ -97,7 +103,6 @@ class Controleur :
         
         if chemin_fichier:
             try:
-                self.modele.sauvegarder_json(chemin_fichier)
                 self.afficher_information("Sauvegarde", "Partie sauvegardée avec succès.")
             except Exception as e:
                 self.afficher_avertissement("Erreur de Sauvegarde", f"Une erreur est survenue : {str(e)}")
