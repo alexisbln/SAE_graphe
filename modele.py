@@ -19,9 +19,11 @@ class Grille:
         self.motifs = {}
         self.valeurs = {}
         self.graphe = {}
+        self.cases_initiales = set()
 
     # Charge une grille depuis un fichier JSON et peuple les dictionnaires
     def charger_json(self, nom_fichier):
+        self.cases_initiales.clear()
         with open(nom_fichier, 'r') as f:
             donnees = json.load(f)
 
@@ -32,6 +34,9 @@ class Grille:
                 nouveau_motif.ajouter_case(x, y)
                 self.valeurs[(x, y)] = valeur
                 
+                if valeur > 0:
+                    self.cases_initiales.add((x, y))
+                    
             self.motifs[nom_motif] = nouveau_motif
             
         self.generer_graphe()
@@ -129,4 +134,3 @@ class Grille:
     def vider_grille(self):
         for case in self.valeurs.keys():
             self.valeurs[case] = 0
-

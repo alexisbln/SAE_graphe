@@ -1,7 +1,6 @@
-from PyQt6.QtWidgets import QMessageBox, QFileDialog
+from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog
 from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtCore import QTimer
-from PyQt6.QtWidgets import QMessageBox, QFileDialog, QInputDialog
 
 class Controleur :
     def __init__(self, modele, vue):
@@ -63,19 +62,18 @@ class Controleur :
             self.afficher_avertissement("Coup Invalide", 
                 "Ce chiffre ne respecte pas les contraintes (voisinage ou motif).")
             
-    def gerer_clic_case(self, x, y):
+    def gerer_clic_case(self, x, y, valeur = None):
+        if (x, y) in self.modele.cases_initiales:
+            self.afficher_avertissement(
+                "Case verrouillée", 
+                "Vous ne pouvez pas modifier une case de départ !"
+            )
+            return
         
-        valeur, ok = QInputDialog.getInt(
-            self.vue, 
-            "Saisie", 
-            f"Entrez un chiffre pour la case ({x}, {y}) :", 
-            min=0, 
-            max=9
-        )
-        
-        # Si l'utilisateur a cliqué sur "OK"
-        if ok:
+        if valeur is not None:
             self.gerer_modification_case(x, y, valeur)
+
+
     def resoudre_grille(self):
         
         self.arreter_chrono()
