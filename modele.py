@@ -19,9 +19,11 @@ class Grille:
         self.motifs = {}
         self.valeurs = {}
         self.graphe = {}
+        self.cases_initiales = set()
 
     # Charge une grille depuis un fichier JSON et peuple les dictionnaires
     def charger_json(self, nom_fichier):
+        self.cases_initiales.clear()
         with open(nom_fichier, 'r') as f:
             donnees = json.load(f)
 
@@ -32,6 +34,9 @@ class Grille:
                 nouveau_motif.ajouter_case(x, y)
                 self.valeurs[(x, y)] = valeur
                 
+                if valeur > 0:
+                    self.cases_initiales.add((x, y))
+                    
             self.motifs[nom_motif] = nouveau_motif
             
         self.generer_graphe()
@@ -129,36 +134,3 @@ class Grille:
     def vider_grille(self):
         for case in self.valeurs.keys():
             self.valeurs[case] = 0
-
-
-# --- ZONE DE TESTS ---
-if __name__ == "__main__":
-    ma_grille = Grille()
-    
-    print("1. Test chargement et graphe...")
-    ma_grille.charger_json("grille/grille1.json")
-    print("   -> Voisins de (0,0) :", ma_grille.graphe[(0,0)])
-    
-    print("\n2. Test getters et setters (Méthodes Contrôleur)...")
-    print("   -> Valeur initiale en (0,0) :", ma_grille.get_valeur(0, 0))
-    ma_grille.set_valeur(0, 0, 9)
-    print("   -> Nouvelle valeur forcée en (0,0) :", ma_grille.get_valeur(0, 0))
-    ma_grille.set_valeur(0, 0, 0) # On nettoie notre modification
-    
-    print("\n3. Test des règles du jeu...")
-    print("   -> Coup '1' valide en (0,0) ?", ma_grille.est_coup_valide(0, 0, 1))
-    
-    print("\n4. Test résolution algorithmique...")
-    if ma_grille.resoudre():
-        print("   -> Succès ! La grille est résolue.")
-    else:
-        print("   -> Échec de la résolution.")
-        
-    print("\n5. Test de sauvegarde JSON...")
-    # Va créer un nouveau fichier dans ton dossier grille/
-    ma_grille.sauvegarder_json("grille/grille1_resolue.json")
-    print("   -> Fichier 'grille1_resolue.json' créé avec succès !")
-    
-    print("\n6. Test de vidage de la grille...")
-    ma_grille.vider_grille()
-    print("   -> Valeur en (0,0) après vidage :", ma_grille.get_valeur(0, 0))
