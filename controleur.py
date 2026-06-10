@@ -11,11 +11,15 @@ class Controleur :
         self.premier_coup_joue = False
         self.timer = QTimer()
         self.timer.timeout.connect(self.mettre_a_jour_temps)
+        self.partie_modifiee = False
 
         if self.vue and self.modele :
             self.connecter_signaux()
             self.configurer_raccourcis()
-    
+    def initialiser_etat_boutons(self):
+        self.vue.action_sauvegarder.setEnabled(False)
+        self.vue.action_solution.setEnabled(False)
+
     def demarrer_chrono(self):
         self.temps_ecoule = 0
         self.timer.start(1000)
@@ -34,6 +38,7 @@ class Controleur :
         self.vue.action_charger.triggered.connect(self.charger_partie)
         self.vue.action_sauvegarder.triggered.connect(self.sauvegarder_partie)
         self.vue.action_solution.triggered.connect(self.resoudre_grille)
+        self.vue.closeEvent = self.gerer_fermeture
 
     def configurer_raccourcis(self):
         # raccourci sauvegarder (ctrl + s)
@@ -52,7 +57,7 @@ class Controleur :
 
         if est_valide :
             self.modele.set_valeur(ligne, colonne, nouvelle_valeur)
-            
+            self.partie_modifiee = True
             self.vue.mettre_a_jour_case(ligne, colonne, nouvelle_valeur)
             if nouvelle_valeur != 0 and not self.premier_coup_joue:
                 self.premier_coup_joue = True
@@ -62,7 +67,7 @@ class Controleur :
             self.afficher_avertissement("Coup Invalide", 
                 "Ce chiffre ne respecte pas les contraintes (voisinage ou motif).")
             
-    def gerer_clic_case(self, x, y):
+    def gerer_clic_case(self, x, y, valeur = None):
         if (x, y) in self.modele.cases_initiales:
             self.afficher_avertissement(
                 "Case verrouillée", 
@@ -70,17 +75,13 @@ class Controleur :
             )
             return
         
-        valeur, ok = QInputDialog.getInt(
-            self.vue, 
-            "Saisie", 
-            f"Entrez un chiffre pour la case ({x}, {y}) :", 
-            min=0, 
-            max=5
-        )
-        
-        # Si l'utilisateur a cliqué sur "OK"
-        if ok:
-            self.gerer_modification_case(x, y, valeur)
+        if valeur is None:
+            valeur, ok = QInputDialog.getInt(self.vue, "Chiffre", "Entrez un numéro (0 pour effacer) :", min=0, max=5)
+            if not ok:
+                return
+
+        self.gerer_modification_case(x, y, valeur)
+
 
     def resoudre_grille(self):
         
@@ -103,6 +104,8 @@ class Controleur :
         
         if chemin_fichier:
             try:
+                self.modele.sauvegarder_json(chemin_fichier)
+                self.partie_modifiee = False
                 self.afficher_information("Sauvegarde", "Partie sauvegardée avec succès.")
             except Exception as e:
                 self.afficher_avertissement("Erreur de Sauvegarde", f"Une erreur est survenue : {str(e)}")
@@ -130,11 +133,30 @@ class Controleur :
                 self.arreter_chrono()
                 self.temps_ecoule = 0
                 self.premier_coup_joue = False
+                self.partie_modifiee = False
                 self.vue.update_chrono("0 min 0 s")
                 
-                self.afficher_information("Succès", f"Grille chargée avec succès depuis :\n{chemin_fichier}")
+                self.vue.action_sauvegarder.setEnabled(True)
+                self.vue.action_solution.setEnabled(True)
             except Exception as e:
                 self.afficher_erreur("Erreur de chargement", f"Impossible de lire le fichier : {str(e)}")
+
+
+    def gerer_fermeture(self, event):
+        if self.partie_modifiee:
+            reponse = QMessageBox.question(
+                self.vue,
+                "Confirmation de fermeture",
+                "Une partie est en cours et n'a pas été sauvegardée. Voulez-vous vraiment quitter ?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if reponse == QMessageBox.StandardButton.Yes:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
 
     def afficher_information(self, titre, message):
         QMessageBox.information(self.vue, titre, message)
