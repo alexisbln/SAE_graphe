@@ -250,9 +250,11 @@ class VueNeonaure(QMainWindow):
         menu_jeu.addAction(self.action_solution)
 
         self.action_indice = QAction("Donner un indice", self) 
-        
+        self.action_verifier = QAction("Vérifier et bloquer la case", self)
+
         menu_jeu.addAction(self.action_solution)
         menu_jeu.addAction(self.action_indice)
+        menu_jeu.addAction(self.action_verifier)
 
         menu_difficulte = barre_menu.addMenu("Difficulté")
         self.action_diff_facile = QAction("Facile", self, checkable=True)
