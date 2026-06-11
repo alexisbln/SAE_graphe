@@ -9,12 +9,16 @@ def main():
     app = QApplication(sys.argv)
 
     modele = Grille()
-    controleur = Controleur(modele, None)
-    vue = VueNeonaure(controleur.gerer_clic_case, controleur.gerer_modification_case)
+    
+    vue = VueNeonaure(action_clic=None, action_clavier=None)
 
-    controleur.vue = vue
-    controleur.connecter_signaux()
-    controleur.configurer_raccourcis()
+    controleur = Controleur(modele, vue)
+
+    vue.zone_grille.action_clic = controleur.gerer_clic_case
+    vue.zone_grille.action_clavier = controleur.gerer_modification_case
+
+   
+    controleur.initialiser_etat_boutons()
     
     vue.show()
 
