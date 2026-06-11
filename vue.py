@@ -67,13 +67,39 @@ class ZoneGrille(QWidget):
 
     def _generer_couleurs_motifs(self):
         """
-        Associe une couleur pastel unique à chaque nom de motif présent dans la grille.
-        Les couleurs sont choisies dans la palette COULEURS_MOTIFS de façon cyclique.
+        Associe une couleur unique à chaque motif en s'assurant que 
+        deux motifs adjacents n'ont pas la même couleur.
         """
-        noms_motifs = set(self.cases_motifs.values())
         self.couleurs_par_motif = {}
-        for i, nom in enumerate(sorted(noms_motifs)):
-            self.couleurs_par_motif[nom] = COULEURS_MOTIFS[i % len(COULEURS_MOTIFS)]
+        noms_motifs = set(self.cases_motifs.values())
+        
+        adjacences = {nom: set() for nom in noms_motifs}
+        for x in range(self.largeur):
+            for y in range(self.hauteur):
+                motif_actuel = self.cases_motifs.get((x, y))
+                if not motif_actuel: continue
+                
+                voisins = [(x+1, y), (x, y+1)]
+                for vx, vy in voisins:
+                    motif_voisin = self.cases_motifs.get((vx, vy))
+                    if motif_voisin and motif_voisin != motif_actuel:
+                        adjacences[motif_actuel].add(motif_voisin)
+                        adjacences[motif_voisin].add(motif_actuel)
+
+        for nom in sorted(noms_motifs):
+            
+            couleurs_interdites = []
+            for voisin in adjacences[nom]:
+                couleur = self.couleurs_par_motif.get(voisin)
+                couleurs_interdites.append(couleur)
+            
+            for couleur in COULEURS_MOTIFS:
+                if couleur not in couleurs_interdites:
+                    self.couleurs_par_motif[nom] = couleur
+                    break
+            
+            if nom not in self.couleurs_par_motif:
+                self.couleurs_par_motif[nom] = COULEURS_MOTIFS[0]
 
     def mettre_a_jour_case(self, x, y, nouvelle_valeur):
         """
@@ -222,6 +248,30 @@ class VueNeonaure(QMainWindow):
         menu_jeu = barre_menu.addMenu("Jeu")
         self.action_solution = QAction("Afficher la solution", self)
         menu_jeu.addAction(self.action_solution)
+
+        self.action_indice = QAction("Donner un indice", self) 
+        self.action_verifier = QAction("Vérifier et bloquer la case", self)
+
+        menu_jeu.addAction(self.action_solution)
+        menu_jeu.addAction(self.action_indice)
+        menu_jeu.addAction(self.action_verifier)
+
+        menu_difficulte = barre_menu.addMenu("Difficulté")
+        self.action_diff_facile = QAction("Facile", self, checkable=True)
+        self.action_diff_normal = QAction("Normal", self, checkable=True)
+        self.action_diff_difficile = QAction("Difficile", self, checkable=True)
+        
+        self.action_diff_facile.setChecked(True) 
+        
+        menu_difficulte.addAction(self.action_diff_facile)
+        menu_difficulte.addAction(self.action_diff_normal)
+        menu_difficulte.addAction(self.action_diff_difficile)
+
+        self.barre_statut = self.statusBar()
+
+        menu_aide = barre_menu.addMenu("Aide")
+        self.action_aide = QAction("Règles du jeu", self)
+        menu_aide.addAction(self.action_aide)
 
         self.barre_statut = self.statusBar()
         self.label_chrono = QLabel("Temps : 0 min 0 s")

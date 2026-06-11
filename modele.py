@@ -34,8 +34,13 @@ class Grille:
                 nouveau_motif.ajouter_case(x, y)
                 self.valeurs[(x, y)] = valeur
                 
-                if valeur > 0:
-                    self.cases_initiales.add((x, y))
+                if len(case) > 3:
+                    est_initial = case[3]
+                    if est_initial:
+                        self.cases_initiales.add((x, y))
+                else:
+                    if valeur > 0:
+                        self.cases_initiales.add((x, y))
                     
             self.motifs[nom_motif] = nouveau_motif
             
@@ -48,7 +53,10 @@ class Grille:
             liste_cases = []
             for x, y in motif.cases:
                 valeur = self.valeurs.get((x, y), 0)
-                liste_cases.append([x, y, valeur])
+                # NOUVEAU : On vérifie si la case fait partie des cases de départ
+                est_initial = (x, y) in self.cases_initiales 
+                # On ajoute cette info dans la sauvegarde
+                liste_cases.append([x, y, valeur, est_initial])
             donnees_a_sauver[nom_motif] = liste_cases
             
         with open(nom_fichier, 'w') as f:
