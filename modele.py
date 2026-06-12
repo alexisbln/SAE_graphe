@@ -1,28 +1,32 @@
 import json
 
 class Motif:
-    # Initialise un motif avec son nom, sa liste de cases et sa taille
+    """Classe représentant un motif (bloc) composé de plusieurs cases."""
+    
     def __init__(self, nom):
+        """Initialise un motif avec son nom, sa liste de cases et sa taille."""
         self.nom = nom
         self.cases = []
         self.taille = 0
 
-    # Ajoute les coordonnées d'une case au motif et met à jour sa taille
     def ajouter_case(self, x, y):
+        """Ajoute les coordonnées d'une case au motif et met à jour sa taille."""
         self.cases.append((x, y))
         self.taille += 1
 
 
 class Grille:
-    # Initialise la grille avec ses dictionnaires de données
+    """Classe gérant la logique, les données et la résolution algorithmique de la grille."""
+    
     def __init__(self):
+        """Initialise la grille avec ses dictionnaires de données et cases de départ."""
         self.motifs = {}
         self.valeurs = {}
         self.graphe = {}
         self.cases_initiales = set()
 
-    # Charge une grille depuis un fichier JSON et peuple les dictionnaires
     def charger_json(self, nom_fichier):
+        """Charge une grille depuis un fichier JSON, peuple les dictionnaires et génère le graphe."""
         self.cases_initiales.clear()
         with open(nom_fichier, 'r') as f:
             donnees = json.load(f)
@@ -46,24 +50,22 @@ class Grille:
             
         self.generer_graphe()
 
-    # Sauvegarde la grille actuelle dans un fichier JSON
     def sauvegarder_json(self, nom_fichier):
+        """Sauvegarde la grille actuelle et l'état des cases initiales dans un fichier JSON."""
         donnees_a_sauver = {}
         for nom_motif, motif in self.motifs.items():
             liste_cases = []
             for x, y in motif.cases:
                 valeur = self.valeurs.get((x, y), 0)
-                # NOUVEAU : On vérifie si la case fait partie des cases de départ
                 est_initial = (x, y) in self.cases_initiales 
-                # On ajoute cette info dans la sauvegarde
                 liste_cases.append([x, y, valeur, est_initial])
             donnees_a_sauver[nom_motif] = liste_cases
             
         with open(nom_fichier, 'w') as f:
             json.dump(donnees_a_sauver, f)
 
-    # Crée le dictionnaire d'adjacence reliant chaque case à ses voisins
     def generer_graphe(self):
+        """Crée le dictionnaire d'adjacence reliant chaque case à tous ses voisins (diagonales incluses)."""
         for (x, y) in self.valeurs.keys():
             voisins = []
             directions = [(-1, -1), (-1, 0), (-1, 1), 
@@ -77,8 +79,8 @@ class Grille:
                     
             self.graphe[(x, y)] = voisins
 
-    # Vérifie si une valeur peut être placée en (x, y) selon les règles du jeu
     def est_coup_valide(self, x, y, test_valeur):
+        """Vérifie si une valeur peut être placée en (x, y) selon les règles de voisinage et de motif."""
         for voisin in self.graphe[(x, y)]:
             if self.valeurs[voisin] == test_valeur:
                 return False
@@ -98,15 +100,15 @@ class Grille:
 
         return True
             
-    # Trouve et renvoie les coordonnées (x, y) de la première case vide (valeur 0)
     def trouver_case_vide(self):
+        """Trouve et renvoie les coordonnées (x, y) de la première case vide (valeur 0) trouvée."""
         for case, valeur in self.valeurs.items():
             if valeur == 0:
                 return case
         return None
 
-    # Résout la grille par essai-erreur (backtracking) et renvoie True si résolue
     def resoudre(self):
+        """Résout la grille par essai-erreur (backtracking) et renvoie True si une solution existe."""
         case_vide = self.trouver_case_vide()
         if not case_vide:
             return True
@@ -130,16 +132,23 @@ class Grille:
                 
         return False
 
-    # Renvoie la valeur actuelle de la case aux coordonnées (x, y)
+    def verifier_victoire(self):
+        """Vérifie si toutes les cases de la grille sont remplies (condition de victoire)."""
+        for valeur in self.valeurs.values():
+            if valeur == 0:
+                return False
+        return True
+
     def get_valeur(self, x, y):
+        """Renvoie la valeur actuelle de la case aux coordonnées demandées."""
         return self.valeurs.get((x, y), 0)
 
-    # Modifie la valeur de la case aux coordonnées (x, y)
     def set_valeur(self, x, y, valeur):
+        """Modifie la valeur de la case aux coordonnées (x, y)."""
         self.valeurs[(x, y)] = valeur
 
-    # Remet toutes les cases de la grille à 0
     def vider_grille(self):
-        for case in self.valeurs.keys():
-            self.valeurs[case] = 0
-
+        """Remet toutes les cases (sauf celles de départ) de la grille à 0."""
+        for (x, y) in self.valeurs.keys():
+            if (x, y) not in self.cases_initiales:
+                self.valeurs[(x, y)] = 0

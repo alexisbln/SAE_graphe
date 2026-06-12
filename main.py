@@ -6,6 +6,7 @@ from vue import VueNeonaure
 from controleur import Controleur
 
 def main():
+    """Point d'entrée principal de l'application Néonaure."""
     app = QApplication(sys.argv)
 
     modele = Grille()
@@ -16,7 +17,6 @@ def main():
 
     vue.zone_grille.action_clic = controleur.gerer_clic_case
     vue.zone_grille.action_clavier = controleur.gerer_modification_case
-
    
     controleur.initialiser_etat_boutons()
     
