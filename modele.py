@@ -1,6 +1,8 @@
 import json
 
 class Motif:
+    """Classe représentant un motif (bloc) composé de plusieurs cases."""
+    
     def __init__(self, nom):
         """Initialise un motif avec son nom, sa liste de cases et sa taille."""
         self.nom = nom
@@ -14,6 +16,8 @@ class Motif:
 
 
 class Grille:
+    """Classe gérant la logique, les données et la résolution algorithmique de la grille."""
+    
     def __init__(self):
         """Initialise la grille avec ses dictionnaires de données et cases de départ."""
         self.motifs = {}
