@@ -129,7 +129,7 @@ class Controleur :
         raccourci_verifier = QShortcut(QKeySequence("V"), self.vue)
         raccourci_verifier.activated.connect(self.verifier_et_bloquer_case)
         
-        # Nouveau raccourci pour l'indice
+        
         raccourci_indice = QShortcut(QKeySequence("Ctrl+I"), self.vue)
         raccourci_indice.activated.connect(self.donner_indice)
 
@@ -394,14 +394,14 @@ class Controleur :
 
             self.indices_restants -= 1
             
-            # --- AJOUT DES MESSAGES ICI ---
+            
             if self.indices_restants > 0:
                 self.vue.action_indice.setText(f"Donner un indice ({self.indices_restants} restants)")
                 self.afficher_information("Coup de pouce", f"Une case a été dévoilée !\n\nIl vous reste {self.indices_restants} indice(s).")
             else:
                 self.vue.action_indice.setText("Donner un indice (Épuisé)")
                 self.afficher_information("Dernier indice", "Une case a été dévoilée !\n\nAttention, c'était votre dernier indice. À vous de jouer !")
-            # ------------------------------
+            
         else:
             self.afficher_erreur("Erreur JSON", "La grille de base semble contenir une erreur impossible à résoudre.")
 
